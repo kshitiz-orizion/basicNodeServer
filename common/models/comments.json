@@ -1,0 +1,37 @@
+{
+  "name": "comments",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "rating": {
+      "type": "number",
+      "required": true,
+      "default": 5
+    },
+    "comment": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "mixins":{
+    "Timestamp": true
+  },
+  "validations": [],
+  "relations": {
+    "dishes": {
+      "type": "belongsTo",
+      "model": "dishes",
+      "foreignKey": ""
+    },
+    "customer": {
+      "type": "belongsTo",
+      "model": "customer",
+      "foreignKey": "customerId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
