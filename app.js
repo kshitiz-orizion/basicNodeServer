@@ -8,14 +8,29 @@ var mongoose = require('mongoose');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var dishRouter=require('./routes/dishRouter');
-//favouritesRouter instead of favouriteRouter
-var favouritesRouter=require('./routes/favouritesRouter');
 var http=require('http');
-var hostname = 'localhost';
-var port = 3000;
+var https=require('https');
+var debug = require('debug')('rest-server:server');
+//var port = normalizePort(process.env.PORT || '3000');
+var app=express();
+//app.set('port', port);
+//app.set('secPort',port+443);
+//var hostname = 'localhost';
+
 var config = require('./config');
 //mongoose.Promise = require('bluebird');
 mongoose.Promise = global.Promise;
+//var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+//server.listen(port, function() {
+  // console.log('Server listening on port ',port);
+//});
+//server.on('error', onError);
+//server.on('listening', onListening);
 
 
 mongoose.connect(config.mongoUrl);
@@ -26,15 +41,16 @@ db.once('open', function () {
     console.log("Connected correctly to server");
 });
 
+
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
-//var dishRouter = require('./routes/dishRouter');
+var dishRouter = require('./routes/dishRouter');
 //var favouriteRouter=require('./routes/favouritesRouter');
 //var leaderRouter = require('./routes/leaderRouter');
-//var favouritesRouter=require('./routes/favouriteRouter');
 
-var app = express();
-app.listen()
+//var app = express();
+//app.listen();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -59,15 +75,24 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 app.use('/dishes',dishRouter);
-app.use('/favourites',favouritesRouter);
+//app.use('/favourites',favouritesRouter);
 //app.use('/promotions',promoRouter);
 //app.use('/leadership',leaderRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+/*app.use(function(req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
+});*/
+// Secure traffic only
+app.all('*', function(req, res, next){
+  console.log('req start: ',req.secure, req.hostname, req.url, app.get('port'));
+  if (req.secure) {
+    return next();
+  };
+
+ res.redirect('https://'+req.hostname+':'+app.get('secPort')+req.url);
 });
 
 // error handlers
@@ -86,6 +111,7 @@ if (app.get('env') === 'development') {
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
+  console.log(', [...]');
   res.status(err.status || 500);
   res.json({
     message: err.message,
@@ -93,7 +119,61 @@ app.use(function(err, req, res, next) {
   });
 });
 
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!');
-});
+//app.listen(3000, function () {
+  //console.log('Example app listening on port 3000!');
+//});
 module.exports = app;
+
+/*function normalizePort(val) {
+  var port = parseInt(val, 10);
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+  return false;
+}*/
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+/*function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+
+    default:
+      throw error;
+  }
+}*/
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+/*function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}*/
